@@ -1,0 +1,38 @@
+rules:
+  - id: path-traversal-open-os-path-join-inline
+    pattern: open(os.path.join($BASE, $USER_INPUT), ...)
+    pattern-not: open(os.path.join("...", "..."), ...)
+    message: >
+      Path traversal: os.path.join() result passed directly to open() without
+      path validation. An attacker controlling the second argument can escape
+      the base directory using '../' sequences. Fix: resolve the path with
+      os.path.abspath() and assert it starts with os.path.abspath($BASE).
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-22: Improper Limitation of a Pathname to a Restricted Directory"
+      owasp: "A01:2021 - Broken Access Control"
+      confidence: HIGH
+      category: security
+
+  - id: path-traversal-open-os-path-join-two-step
+    patterns:
+      - pattern: |
+          $PATH = os.path.join($BASE, $USER_INPUT)
+          open($PATH, ...)
+      - pattern-not: |
+          $PATH = os.path.join("...", "...")
+          open($PATH, ...)
+    message: >
+      Path traversal: a path built with os.path.join() is passed to open()
+      without validation in between. An attacker controlling the second
+      argument of os.path.join() can escape the base directory. Fix: call
+      os.path.abspath() on $PATH and verify it starts with
+      os.path.abspath($BASE) before calling open().
+    languages: [python]
+    severity: ERROR
+    metadata:
+      cwe: "CWE-22: Improper Limitation of a Pathname to a Restricted Directory"
+      owasp: "A01:2021 - Broken Access Control"
+      confidence: HIGH
+      category: security
